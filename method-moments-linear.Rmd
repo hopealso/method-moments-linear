@@ -1,0 +1,39 @@
+---
+title: "Statistical Analysis, MSCA 31007, Lecture 3"
+author: "Hope Foster-Reyes"
+date: "October 28, 2016"
+output: pdf_document
+---
+
+# Simulation of 4 Linear Models
+
+Understand common assumptions behind the linear model.
+
+Set the values of slope (a) and intercept (b) parameters. Set the sample length to 1,000.
+
+```{r setup}
+# Slope and Intercept
+a <- 0.8; b <- 0.1
+sample.n <- 1000
+```
+
+## Model 1.
+
+Simulate and plot Model 1: 
+Input variable $X ~ Norm(/mu = 3, /sigma = 2.5)$; model residuals $Eps ~ Norm(/mu, /sigma = 1.5)$
+
+```{r m1}
+# Simulate the model using rnorm()
+set.seed(111)
+model1.x <- rnorm(sample.n, mean = 3, sd = 2.5)
+set.seed(1112131415)
+model1.eps <- rnorm(sample.n, mean = 0, sd = 1.5)
+
+model1.y <- (a * model1.x + b) + model1.eps
+model1 <- cbind(Y=model1.y, X=model1.x, Eps=model1.eps)
+
+# Inspect results
+head(model1)
+plot(model1$X, model1$Y)
+```
+
