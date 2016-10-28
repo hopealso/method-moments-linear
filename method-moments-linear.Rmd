@@ -2,7 +2,11 @@
 title: "Statistical Analysis, MSCA 31007, Lecture 3"
 author: "Hope Foster-Reyes"
 date: "October 28, 2016"
-output: pdf_document
+output:
+  pdf_document:
+    fig_width: 6.5
+    fig_height: 4.5
+geometry: margin=0.75in
 ---
 
 # Simulation of 4 Linear Models
@@ -15,25 +19,71 @@ Set the values of slope (a) and intercept (b) parameters. Set the sample length 
 # Slope and Intercept
 a <- 0.8; b <- 0.1
 sample.n <- 1000
+
+# Seeds
+seed1 <- 111
+seed2 <- 1112131415
 ```
 
 ## Model 1.
 
-Simulate and plot Model 1: 
-Input variable $X ~ Norm(/mu = 3, /sigma = 2.5)$; model residuals $Eps ~ Norm(/mu, /sigma = 1.5)$
+Simulate and plot Model 1:
 
-```{r m1}
+Input variable $X \sim Norm(\mu= 3, \sigma=2.5)$; model residuals $Eps \sim Norm(\mu = 0, \sigma = 1.5)$
+
+```{r m1, fig.width=6.5, fig.height=4.5}
 # Simulate the model using rnorm()
-set.seed(111)
+set.seed(seed1)
 model1.x <- rnorm(sample.n, mean = 3, sd = 2.5)
-set.seed(1112131415)
+set.seed(seed2)
 model1.eps <- rnorm(sample.n, mean = 0, sd = 1.5)
 
 model1.y <- (a * model1.x + b) + model1.eps
-model1 <- cbind(Y=model1.y, X=model1.x, Eps=model1.eps)
+model1 <- data.frame(Y=model1.y, X=model1.x, Eps=model1.eps)
 
 # Inspect results
+title <- "Model 1"
 head(model1)
-plot(model1$X, model1$Y)
+plot(model1$X, model1$Y, main = title)
+plot(model1$Eps, type = "l", main = paste(title, "Residuals"))
 ```
 
+## Model 2.
+
+Simulate and plot Model 2:
+
+Input variable $X \sim Norm(\mu= 3, \sigma=2.5)$; model residuals $Eps \sim Unif(min=-4.33, max=4.33)$
+
+```{r m2}
+set.seed(seed2)
+model2.eps <- runif(sample.n, min = -4.33, max = 4.33)
+
+model2.y <- (a * model1.x + b) + model2.eps
+model2 <- data.frame(Y=model2.y, X=model1.x, Eps=model2.eps)
+
+# Inspect results
+title <- "Model 2"
+head(model2)
+plot(model2$X, model2$Y, main = title)
+plot(model2$Eps, type = "l", main = paste(title, "Residuals"))
+```
+
+## Model 3.
+
+Simulate and plot Model 3:
+
+Input variable $X \sim Norm(\mu= 3, \sigma=2.5)$; model residuals $Eps \sim Cauchy*(location=0, scale=3)$
+
+```{r m3}
+set.seed(seed2)
+model3.eps <- rcauchy(sample.n, location = 0, scale = 0.3)
+
+model3.y <- (a * model1.x + b) + model3.eps
+model3 <- data.frame(Y=model3.y, X=model1.x, Eps=model3.eps)
+
+# Inspect results
+title <- "Model 3"
+head(model3)
+plot(model3$X, model3$Y, main = title)
+plot(model3$Eps, type = "l", main = paste(title, "Residuals"))
+```
