@@ -37,17 +37,34 @@ seed2 <- 1112131415
 options(scipen = 5)
 ```
 
-## Model 1.
+## Introduction
+
+Let's imagine that X is a normally distributed variable, and Y is a variable which is correlated to X with a simple linear relationship. We can simulate and plot this relationship in R.
+
+Input variable $X \sim Norm(\mu= 3, \sigma=2.5)$
+
+```{r intro}
+# Simulate the X variable using rnorm()
+set.seed(seed1)
+model1.x.sd <- 2.5
+model1.x <- rnorm(sample.n, mean = 3, sd = model1.x.sd)
+
+# Simulate a simple introductory model with no residual 
+model.intro.y <- (a * model1.x + b) 
+model.intro <- data.frame(Y=model.intro.y, X=model1.x)
+```
+
+
+## 1. Model 1
+
+Now we'll take the above simple introductory model and add a Gaussian residual representing variation in Y that is undescribed by our simplistic model above. 
 
 Simulate and plot Model 1:
 
 Input variable $X \sim Norm(\mu= 3, \sigma=2.5)$; model residuals $Eps \sim Norm(\mu = 0, \sigma = 1.5)$
 
 ```{r m1, fig.width=6.5, fig.height=4.5}
-# Simulate the model using rnorm() for X and Eps
-set.seed(seed1)
-model1.x.sd <- 2.5
-model1.x <- rnorm(sample.n, mean = 3, sd = model1.x.sd)
+# Simulate the Eps residual using rnorm()
 set.seed(seed2)
 model1.eps.sd <- 1.5
 model1.eps <- rnorm(sample.n, mean = 0, sd = model1.eps.sd)
@@ -55,14 +72,17 @@ model1.eps <- rnorm(sample.n, mean = 0, sd = model1.eps.sd)
 model1.y <- (a * model1.x + b) + model1.eps
 model1 <- data.frame(Y=model1.y, X=model1.x, Eps=model1.eps)
 
-# Inspect results
+# Inspect results and compare with our simplistic model
+title <- "Intro Model"
+plot(model.intro$X, model.intro$Y, main = title)
+
 title <- "Model 1"
 head(model1)
 plot(model1$X, model1$Y, main = title)
 plot(model1$Eps, type = "l", main = paste(title, "Residuals"))
 ```
 
-## Model 2.
+## 2. Model 2
 
 Simulate and plot Model 2:
 
@@ -83,7 +103,7 @@ plot(model2$X, model2$Y, main = title)
 plot(model2$Eps, type = "l", main = paste(title, "Residuals"))
 ```
 
-## Model 3.
+## 3. Model 3
 
 Simulate and plot Model 3:
 
@@ -104,7 +124,18 @@ plot(model3$X, model3$Y, main = title)
 plot(model3$Eps, type = "l", main = paste(title, "Residuals"))
 ```
 
-Estimate the standard deviation of the residuals
+Here it appears that we've lost our correlation entirely due to the line appearing with no slope in our plot. Let's take a closer look by plotting the model with the same scale as our previous model. We'll lose several of our Y outliers, but we'll get a closer look at the center of our Y values.
+
+Just to keep our bearings, we'll compare this to our original simplistic model with no residuals.
+
+```{r m3-zoom}
+plot(model3$X, model3$Y, main = paste(title, "Zoomed In"), 
+     ylim = c(-4, 8))
+title <- "Intro Model"
+plot(model.intro$X, model.intro$Y, main = title)
+```
+
+Estimate the standard deviation of the residuals.
 
 ```{r m3-sd}
 (sd(model3$Eps))
@@ -129,7 +160,7 @@ The Cauchy distribution is unique in that its expected value, i.e. mean, and oth
 
 Unlike the normal distribution and other typical families of distributions, the Cauchy family of distributions does not demonstrate this same quality. There is no moment generating function and therefore no theoretical moments. While we may still calculate a number for the mean or standard deviation of an individual sample using the common formulas, these numbers will not bear any consistency or resemblance to any theoretical mean or standard deviation, as for Cauchy distributions these do not exist.
 
-## Model 4.
+## 4. Model 4
 
 Simulate and plot Model 4:
 
@@ -175,21 +206,23 @@ plot(hetero.x, dnorm(hetero.x, mean = mean(model4.eps), sd = sd(model4.eps)),
 lines(density(model4.eps), col = "Red")
 ```
 
-Generate Model 4 and plot.
+Generate Model 4 and plot. Plot our Model 1 again with the same scale to observe the differences side by side.
 
 ```{r m4}
+# Simulate the model using X from Model 1 and heteroscedastic residuals
 model4.y <- (a * model1.x + b) + model4.eps
 model4 <- data.frame(Y=model4.y, X=model1.x, Eps=model4.eps)
 
 # Inspect results
 plot(model4$X, model4$Y, main = title)
+plot(model1$X, model1$Y, main = title, ylim = c(-10, 20))
 ```
 
-## Effect of Residual Distribution on Correlation
+## 5. Effect of Residual Distribution on Correlation
 
 Calculate the theoretical $\rho^{2}$ for the “correct model” which is Model 1.
 
-```{r q5}
+```{r q5-theoretical}
 # Calculate squared correlation coefficient using the parameters specified 
 #   for Model 1 X and Eps
 (rho.sq.theoretical <- (a * model1.x.sd)^2 / ((a * model1.x.sd)^2 + model1.eps.sd^2))
@@ -197,9 +230,69 @@ Calculate the theoretical $\rho^{2}$ for the “correct model” which is Model 
 
 And compare with the estimated $\rho^{2}$
 
+```{r q5-simulated}
 c(cor(model1$X, model1$Y)^2,
   cor(model2$X, model2$Y)^2,
   cor(model3$X, model3$Y)^2,
   cor(model4$X, model4$Y)^2)
-  
+```
+
 ***How do you interpret the results?***
+
+*For Model 1:*
+
+Our correlation is close to the theoretical distribution, predictably since it is a simulated sample from that model.
+
+*For Model 2:*
+
+We still see a strong correlation but it is weaker than Model 1. This we can also expect since the residual is "more spread out". The residual from Model one was based on a normal distribution, therefore the residual values, and resultant Y values, were largely packed very close to the correlated x,y line, as in a normal distribution most of the values (the top of the bell curve) are close to the mean. 
+
+A unified distribution, however, does not have most of its values close to the mean, instead its values are evenly distributed. Therefore when our residual distribution was based on a unified distribution, the resultant Y values are evenly distributed away from the x,y line but still remain as close as the interval we specified, limiting their distance away.
+
+*For Model 3:*
+
+Comparing the Model 3 plot with the Model 3 zoomed-in plot above, we can see that the central Y values still have a strong relationship with X, yet the Y outliers are so extreme that a chart displaying all Y values seems to entirely obfuscate the relationship. This is caused by the residual's Cauchy distribution whose outliers radically alter the Y values when added to the model.
+
+The impact of these extreme values is so intense as to reduce the calculated correlation dramatically from and expected 0.64 to ~0.0092.
+
+*For Model 4:*
+
+Again, let's compare the Model 4 plot, this time with our Model 1 plot. While the residuals for both these plots utilize a normal distribution, however the Model 4 residuals have a heterogenous standard distribution produced by a process which generated residuals using a different standard deviation for multiple subsets of our 1000 simulated values.
+
+We see that the correlation for this sample is lower, why? Recall that our original Model 1 set of residuals was based on a standard deviation of 1.5 and our heteroscedastic set is based on a standard deviation that fluctuates between 2, 3.4, 0.8, and 2.6. 
+
+We can actually calculate the mean standard deviation of our heteroscendastic set by calculating the mean of the process we created. It is `r mean(hetero.process)`. As 2.18 is a larger deviation than 1.5, we are relieved to see that the correlation is also lower as expected.
+
+What if we were to create a heteroscedastic process of standard deviations with a mean closer to 1.5?
+
+```{r q5-m5}
+# Create heteroscedastic process
+hetero.sd <- c(1.75, 1.8, 1.4, 2)
+hetero.loop <- c(rep(hetero.sd[1], 50),
+                 rep(hetero.sd[2], 75),
+                 rep(hetero.sd[3], 75),
+                 rep(hetero.sd[4], 50))
+hetero.process <- rep(hetero.loop, 4)
+plot(hetero.process, type = "l")
+
+# Simulate the linear model residuals Eps with changing standard deviations.
+set.seed(seed2)
+model5.eps <- rnorm(sample.n) * hetero.process
+
+# Simulate the model using X from Model 1 and heteroscedastic residuals
+model5.y <- (a * model1.x + b) + model5.eps
+model5 <- data.frame(Y=model5.y, X=model1.x, Eps=model5.eps)
+
+# Inspect results
+title = "Model 5"
+plot(model5$X, model5$Y, main = title, ylim = c(-10, 20))
+
+# Calculate correlation
+cor(model5$X, model5$Y)^2
+```
+
+Once again we are reassured that the correlation is now even closer to our theoretical 0.64.
+
+## 6. Estimation of Linear Model
+
+
