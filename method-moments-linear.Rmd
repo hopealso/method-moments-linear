@@ -295,4 +295,27 @@ Once again we are reassured that the correlation is now even closer to our theor
 
 ## 6. Estimation of Linear Model
 
+Estimate parameters $a, b, \sigma$ using the function lm(). Explore its output.
+
+```{r q6}
+model1.estimate <- lm(Y~X, data = model1)
+model1.summary <- summary(model1.estimate)
+names(model1.summary)
+model1.summary$r.squared
+model1.summary$coefficients
+model1.summary$sigma^2
+var(model1.summary$residuals)
+```
+
+Note the difference between `r, echo=F summary(m1)$sigma^2` and `r, echo=F var(summary(m1)$residuals)`.
+
+The estimate returned by analyzing the model itself finds $\sigma$ using 2 degrees of freedom (df), or N-2 in the denominator. But `r, echo=F var()` does not know anything about the model and its df. It estimates variance using N-1 in the denominator.
+
+The two estimates are reconciled by $\frac{N-1}{N-2}$.
+
+```{r q6-sigma}
+var(model1.summary$residuals) * (sample.n - 1) / (sample.n - 2)
+```
+
+### 6a. ***Estimate the same parameters using the method of moments directly.***
 
