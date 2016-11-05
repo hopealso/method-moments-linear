@@ -300,8 +300,9 @@ Once again we are reassured that the correlation is now even closer to our theor
 Estimate parameters $a, b, \sigma$ using the function lm(). Explore its output.
 
 ```{r q6}
-model1.estimate <- lm(Y~X, data = model1)
-(model1.summary <- summary(model1.estimate))
+model1.est <- lm(Y~X, data = model1)
+(model1.summary <- summary(model1.est))
+
 names(model1.summary)
 model1.summary$r.squared
 model1.summary$coefficients
@@ -319,10 +320,74 @@ The two estimates are reconciled by $\frac{N-1}{N-2}$.
 var(model1.summary$residuals) * (sample.n - 1) / (sample.n - 2)
 ```
 
-### 6a. ***Estimate the same parameters using the method of moments directly.***
+### ***Estimate the same parameters using the method of moments directly.***
 
 The method of moments states to first define a set of moments of our population (the model) as functions of our unknown parameters which define the model.
 
-Therefore we can define:
+#### 1. Therefore we can define:
 
-Y = 
+$Y = aX + b + \varepsilon$
+$Eps \sim Norm(\mu = 0, \sigma = 1.5)$
+
+Expectation of Y, i.e. first moment:
+
+$E[Y] = E[aX + b + \varepsilon]$
+
+$E[Y] = aE[X] + b + E[\varepsilon]$
+
+$E[Y] = aE[X] + b$
+
+Variation of Y, i.e. second central moment:
+
+$Var[Y] = Var[aX + b + \varepsilon]$
+
+$Var[Y] = a^{2}Var[X] + Var[\varepsilon]$
+
+$Var[Y] = a^{2}Var[X] + \sigma_{\varepsilon}^{2}$
+
+Covariance of X & Y:
+
+$\sigma_{XY} = aVar[X]$
+
+#### 2. Using R, we can now solve for our parameters:
+
+```{r q6-mom}
+a.est <- cov(model1.x, model1.y) / var(model1.x)
+b.est <- mean(model1.y) - (a.est * mean(model1.x))
+sigma.est <- sqrt(var(model1.y) - (a.est^2 * var(model1.x)))
+
+c(a.est, b.est, sigma.est)
+```
+
+### ***Reconcile our Method of Moments sigma estimate with our sigma obtained through lm().***
+
+???XXX???
+
+## 7. Fit lm() to the the Rest of Linear Models
+
+Compare the differences between the assumptions of the 4 models and tell how they change the model behavior and estimated parameters.
+
+```{r q7}
+model2.est <- lm(Y~X, data = model2)
+model2.summary <- summary(model2.est)
+model3.est <- lm(Y~X, data = model3)
+model3.summary <- summary(model3.est)
+model4.est <- lm(Y~X, data = model4)
+model4.summary <- summary(model4.est)
+
+model2.summary$coefficients
+model2.summary$sigma
+model2.summary$r.squared
+model2.summary$df
+
+model3.summary$coefficients
+model3.summary$sigma
+model3.summary$r.squared
+model3.summary$df
+
+model4.summary$coefficients
+model4.summary$sigma
+model4.summary$r.squared
+model4.summary$df
+```
+
