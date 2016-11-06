@@ -52,12 +52,14 @@ model1.x <- rnorm(sample.n, mean = 3, sd = model1.x.sd)
 # Simulate a simple introductory model with no residual 
 model.intro.y <- (a * model1.x + b) 
 model.intro <- data.frame(Y=model.intro.y, X=model1.x)
-```
 
+title <- "Intro Model"
+plot(model.intro$X, model.intro$Y, main = title, ylim = c(-5, 15))
+```
 
 ## 1. Model 1
 
-Now we'll take the above simple introductory model and add a "Gaussian (normal) residual representing variation in Y that is undescribed by our simplistic model above. Thus we will create X as our "independent" or "predictor"" random variable and Y as our "dependent" or "response" output random variable.
+Now we'll take the above simple introductory model and add a "Gaussian" (normal) residual representing variation in Y that is undescribed by our simplistic model above. Thus we will create X as our "independent" or "predictor" random variable and Y as our "dependent" or "response" output random variable.
 
 ### Explanation
 
@@ -79,7 +81,7 @@ What if we saw that there was randomness in Y, but we did not know or suspect th
 
 **Equation 2.** 
 
-$Y = \mu + \varepsilon$
+$Y = \mu_{Y} + \varepsilon$
 
 $\varepsilon \sim Norm(0, \sigma_{Y})$
 
@@ -87,67 +89,21 @@ Since the above states that "Y is equal to its expected value (mean) plus its no
 
 $Y \sim Norm(\mu_{Y}, \sigma_{Y})$
 
-It is important to note the parallel meaning of $\varepsilon$ in both. Both equations represent randomness in Y, and both represent that randomness with the symbol $\varepsilon$. However, the first equation adds an element of "knowing" that is critical when we attempt to utilize statistics to find relationships between variables. 
+It is important to note the parallel meaning of $\varepsilon$ in both equations. Both equations represent randomness in Y, and both represent that randomness with the symbol $\varepsilon$. However, the first equation adds an element of "knowing" that is critical when we attempt to utilize statistics to find relationships between variables. 
 
 One could say that the goal of statistics is to explain the relationship between predictor variables and response variables so that we can "play God" and cause desired events to occur by manually altering our predictors to achieve our desired response.
 
-In order to do so, we need to know **more** about Y than the above Equation 2 tells us, that "it is random and seems to center around this number and vary about this much in this way". The more that we would like to know (if possible) is how Y responds according to a predictor, or set of predictors. Thus the first equation provides both, the **predictor**, "X", and the **"how"**, our slope and intercept a and b.
+In order to do so, we need to know **more** about Y than the above Equation 2 tells us, namely that "it is random and seems to center around this number and vary about this much in this way". The "more" that we would like to know (if possible) is how Y responds according to a predictor, or set of predictors. Thus the first equation provides both, the **predictor**, "X", and the **"how"**, our slope and intercept a and b.
 
-Yet our in both cases $\varepsilon$ is our "smoke screen" of reality, also known as randomness. One way of looking at our first equation is that it takes a *portion* of the unknown in $\varepsilon$ and converts it into a known ($aX + b$).
+Yet in both cases $\varepsilon$ is our "smoke screen" of reality, also known as randomness. One way of looking at our first equation is that it takes a *portion* of the unknown in $\varepsilon$ and converts it into a known ($aX + b$).
 
-We can plot some basic examples of the above to demonstrate some of the properties of such a model:
+Naturally, the value of $\sigma$ will differ in our Equation 1 and Equation 2 above, were they to refer to the same random variable Y. The reason they vary is precisely because the predictor variable X "takes away" (i.e. *explains*) some of the variability that our Equation 2 $\varepsilon$ explains. Thus we should find that our $\sigma_{Y}$ is greater than our $\sigma_{\varepsilon}$.
 
-```{r m1-demo, out.width='60%'}
-# Y ~ Norm(1, 1), Eps ~ Norm(0,1)
-demo.eps <- rnorm(100, 0, 1)
-demo.y <- 1 + demo.eps
-sd(demo.y)
-sd(demo.eps)
-
-demo.x <- 1:100
-
-# Y = X
-demo.a <- 1; demo.b <- 0
-demo.y <- demo.a * demo.x + demo.b
-plot(demo.x, demo.y)
-(mean(demo.y))
-(mean(demo.a * demo.x + demo.b))
-(sd(demo.y))
-
-# Y = X; Eps ~ Norm(0, 1)
-demo.eps <- rnorm(100, sd = 1)
-demo.y <- demo.a * demo.x + demo.b + demo.eps
-
-plot(demo.x, demo.y)
-(mean(demo.y))
-(mean(demo.a * demo.x + demo.b))
-(sd(demo.y))
-(sd(demo.eps))
-(sd(demo.y - mean(demo.y)))
-
-# Y = 2X + 1
-demo.a <- 2; demo.b <- 1
-demo.y <- demo.a * demo.x + demo.b
-plot(demo.x, demo.y)
-(mean(demo.y))
-(mean(demo.a * demo.x + demo.b))
-
-
-```
-
-
-
-??? Naturally, the value of $\sigma$ will differ in our Equation 1 and Equation 2 above, were they to refer to the same random variable Y.
-
-It is also important to note that we are answering the question:
+Finally, it is important to note that we are answering the question:
 
 **How does Y respond to predictor X?**
 
 with the answer: **"It responds in a linear fashion (with some additional randomness)."** That is the basis for our use of a linear model and will not always be the case.
-
-XXX ??? Firstly, we can observe that in our case "b" is equivalent to the mean or expected value of Y.
-
-But perhaps more importantly we see that the second equation XXX ???
 
 ### Simulation
 
@@ -176,22 +132,29 @@ plot(model1$Eps, type = "l", main = paste(title, "Residuals"))
 
 ### Exploration
 
-Let's explore our model a bit to confirm some of our expectations:
+Let's explore our model sample a bit to confirm some of our expectations. Bearing in mind below that the mean of any constant is itself, and the variance of any constant is 0:
 
 ```{r m1-explore}
-# Our Y values are indeed calculated according to our equation
+# Our Y values are indeed calculated according to our model equation
 (a * model1.x[0:5] + b + model1.eps[0:5])
 (model1.y[0:5])
 
 # The mean of our Epsilon sample is ~ 0, hence the mean of aX + b is ~ equivalent to the 
-#   mean of Y
+#   mean of Y, or a * the mean of X + b.
 (mean(model1.eps))
-(mean((a * model1.x) + b))
-(mean(model1.y))
+c(mean((a * model1.x) + b), a * mean(model1.x) + b, mean(model1.y))
 
+# The standard deviation of the sample Y is greater than the standrd deviation of Epsilon
+c(sd(model1.y), sd(model1.eps))
 
+# The variance of the sample Y is equal to the variance of aX + Epsilon
+c(var(model1.y), var(a * model1.x + model1.eps))
+
+# The standard deviation of the sample Y is equal to the sd of aX + Epsilon
+c(sd(model1.y), sd(a * model1.x + model1.eps))
 ```
 
+The above properties will be relevant to our use below of the Method of Moments to estimate parameters.
 
 ## 2. Model 2
 
@@ -370,7 +333,7 @@ The impact of these extreme values is so intense as to reduce the calculated cor
 
 *For Model 4:*
 
-Again, let's compare the Model 4 plot, this time with our Model 1 plot. The residuals for both these plots utilize a normal distribution, however the Model 4 residuals have a heterogenous standard distribution produced by a process which generated residuals using a different standard deviation for multiple subsets of our 1000 simulated values.
+Again, let's compare the Model 4 plot, this time with our Model 1 plot. The residuals for both these plots utilize a normal distribution, however the Model 4 residuals have a heterogenous standard deviation produced by a process which generated residuals using a different standard deviation for multiple subsets of our 1000 simulated values.
 
 We see that the correlation for this sample is lower, why? Recall that our original Model 1 set of residuals was based on a standard deviation of 1.5 and our heteroscedastic set is based on a standard deviation that fluctuates between 2, 3.4, 0.8, and 2.6. 
 
@@ -421,9 +384,9 @@ model1.summary$sigma^2
 var(model1.summary$residuals)
 ```
 
-Note the difference between `r, echo=F summary(m1)$sigma^2` and `r, echo=F var(summary(m1)$residuals)`.
+Note the difference between `model1.summary$sigma^2` and `var(model1.summary$residuals)`.
 
-The estimate returned by analyzing the model itself finds $\sigma$ using 2 degrees of freedom (df), or N-2 in the denominator. But `r, echo=F var()` does not know anything about the model and its df. It estimates variance using N-1 in the denominator.
+The estimate returned by analyzing the model itself finds $\sigma$ using 2 degrees of freedom (df), or N-2 in the denominator. But `var()` does not know anything about the model and its df. It estimates variance using N-1 in the denominator.
 
 The two estimates are reconciled by $\frac{N-1}{N-2}$.
 
@@ -486,20 +449,37 @@ model3.est <- lm(Y~X, data = model3)
 model3.summary <- summary(model3.est)
 model4.est <- lm(Y~X, data = model4)
 model4.summary <- summary(model4.est)
+```
 
+### Model 1 - Normal Residuals
+
+``` {r q7-m1}
+model1.summary$coefficients
+model1.summary$df
+c(model1.summary$sigma, model1.summary$r.squared)
+```
+
+### Model 2 - Uniform Residuals
+
+``` {r q7-m2}
 model2.summary$coefficients
-model2.summary$sigma
-model2.summary$r.squared
 model2.summary$df
+c(model2.summary$sigma, model2.summary$r.squared)
+```
 
+### Model 3 - Cauchy Residuals
+
+``` {r q7-m3}
 model3.summary$coefficients
-model3.summary$sigma
-model3.summary$r.squared
 model3.summary$df
+c(model3.summary$sigma, model3.summary$r.squared)
+```
 
+### Model 4 - Heteroscedastic Residuals
+
+``` {r q7-m4}
 model4.summary$coefficients
-model4.summary$sigma
-model4.summary$r.squared
 model4.summary$df
+c(model4.summary$sigma, model4.summary$r.squared)
 ```
 
