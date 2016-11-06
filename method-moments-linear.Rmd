@@ -57,7 +57,43 @@ model.intro <- data.frame(Y=model.intro.y, X=model1.x)
 
 ## 1. Model 1
 
-Now we'll take the above simple introductory model and add a Gaussian residual representing variation in Y that is undescribed by our simplistic model above. 
+Now we'll take the above simple introductory model and add a Gaussian residual representing variation in Y that is undescribed by our simplistic model above. Thus we will create X as our "independent" or "predictor"" random variable and Y as our "dependent" or "response" output random variable.
+
+### Explanation
+
+In this model, the value of the random variable Y varies, i.e. it is not a constant. A portion of this variation is *explained* by the variation in X or is *predicted* by X. This portion is described by our earlier introductory model:
+
+$Y = aX + b$
+
+A portion of the variation in Y however is *not explained* by our model. This accounts for the randomness in Y (and, notably, accounts for the reason that we use statistics rather than simple algebra to predict or explain our Y values). 
+
+To represent this, we use the symbol $\varepsilon$. We describe this as following:
+
+$Y = aX + b + \varepsilon$
+
+What if we saw that there was randomness in Y, but we did not know or suspect that Y had a relationship with X? We could still represent Y as a random variable with the following:
+
+$Y = \mu + \varepsilon$
+
+$\varepsilon \sim Norm(0, \sigma)$
+
+Since the above states that "Y is equal to its expected value (mean) plus its normally distributed standard deviation" it is equivalent to the following:
+
+$Y \sim Norm(\mu, \sigma)$
+
+This is an important point to note, as it means that the standard deviation of Y is the same as the standard deviation of Epsilon ($\varepsilon$).
+
+The equivalency of the two statements below points out two further important elements to note in our model.
+
+$Y = \mu + \varepsilon$
+
+$Y = aX + b + \varepsilon$
+
+Firstly, we can observe that in our case "b" is equivalent to the mean or expected value of Y.
+
+But perhaps more importantly we see that the second equation XXX ???
+
+### Simulation
 
 Simulate and plot Model 1:
 
@@ -81,6 +117,14 @@ head(model1)
 plot(model1$X, model1$Y, main = title)
 plot(model1$Eps, type = "l", main = paste(title, "Residuals"))
 ```
+
+### Exploration
+
+```{r m1-explore}
+sd(model1.y)
+sd(model1.eps)
+```
+
 
 ## 2. Model 2
 
@@ -327,6 +371,7 @@ The method of moments states to first define a set of moments of our population 
 #### 1. Therefore we can define:
 
 $Y = aX + b + \varepsilon$
+
 $Eps \sim Norm(\mu = 0, \sigma = 1.5)$
 
 Expectation of Y, i.e. first moment:
