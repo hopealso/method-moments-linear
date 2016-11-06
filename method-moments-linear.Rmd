@@ -57,7 +57,7 @@ model.intro <- data.frame(Y=model.intro.y, X=model1.x)
 
 ## 1. Model 1
 
-Now we'll take the above simple introductory model and add a Gaussian residual representing variation in Y that is undescribed by our simplistic model above. Thus we will create X as our "independent" or "predictor"" random variable and Y as our "dependent" or "response" output random variable.
+Now we'll take the above simple introductory model and add a "Gaussian (normal) residual representing variation in Y that is undescribed by our simplistic model above. Thus we will create X as our "independent" or "predictor"" random variable and Y as our "dependent" or "response" output random variable.
 
 ### Explanation
 
@@ -69,27 +69,83 @@ A portion of the variation in Y however is *not explained* by our model. This ac
 
 To represent this, we use the symbol $\varepsilon$. We describe this as following:
 
+**Equation 1.** 
+
 $Y = aX + b + \varepsilon$
+
+$\varepsilon \sim Norm(0, \sigma_{\varepsilon})$
 
 What if we saw that there was randomness in Y, but we did not know or suspect that Y had a relationship with X? We could still represent Y as a random variable with the following:
 
-$Y = \mu + \varepsilon$
-
-$\varepsilon \sim Norm(0, \sigma)$
-
-Since the above states that "Y is equal to its expected value (mean) plus its normally distributed standard deviation" it is equivalent to the following:
-
-$Y \sim Norm(\mu, \sigma)$
-
-This is an important point to note, as it means that the standard deviation of Y is the same as the standard deviation of Epsilon ($\varepsilon$).
-
-The equivalency of the two statements below points out two further important elements to note in our model.
+**Equation 2.** 
 
 $Y = \mu + \varepsilon$
 
-$Y = aX + b + \varepsilon$
+$\varepsilon \sim Norm(0, \sigma_{Y})$
 
-Firstly, we can observe that in our case "b" is equivalent to the mean or expected value of Y.
+Since the above states that "Y is equal to its expected value (mean) plus its normally-distributed standard deviation", it is equivalent to the following:
+
+$Y \sim Norm(\mu_{Y}, \sigma_{Y})$
+
+It is important to note the parallel meaning of $\varepsilon$ in both. Both equations represent randomness in Y, and both represent that randomness with the symbol $\varepsilon$. However, the first equation adds an element of "knowing" that is critical when we attempt to utilize statistics to find relationships between variables. 
+
+One could say that the goal of statistics is to explain the relationship between predictor variables and response variables so that we can "play God" and cause desired events to occur by manually altering our predictors to achieve our desired response.
+
+In order to do so, we need to know **more** about Y than the above Equation 2 tells us, that "it is random and seems to center around this number and vary about this much in this way". The more that we would like to know (if possible) is how Y responds according to a predictor, or set of predictors. Thus the first equation provides both, the **predictor**, "X", and the **"how"**, our slope and intercept a and b.
+
+Yet our in both cases $\varepsilon$ is our "smoke screen" of reality, also known as randomness. One way of looking at our first equation is that it takes a *portion* of the unknown in $\varepsilon$ and converts it into a known ($aX + b$).
+
+We can plot some basic examples of the above to demonstrate some of the properties of such a model:
+
+```{r m1-demo, out.width='60%'}
+# Y ~ Norm(1, 1), Eps ~ Norm(0,1)
+demo.eps <- rnorm(100, 0, 1)
+demo.y <- 1 + demo.eps
+sd(demo.y)
+sd(demo.eps)
+
+demo.x <- 1:100
+
+# Y = X
+demo.a <- 1; demo.b <- 0
+demo.y <- demo.a * demo.x + demo.b
+plot(demo.x, demo.y)
+(mean(demo.y))
+(mean(demo.a * demo.x + demo.b))
+(sd(demo.y))
+
+# Y = X; Eps ~ Norm(0, 1)
+demo.eps <- rnorm(100, sd = 1)
+demo.y <- demo.a * demo.x + demo.b + demo.eps
+
+plot(demo.x, demo.y)
+(mean(demo.y))
+(mean(demo.a * demo.x + demo.b))
+(sd(demo.y))
+(sd(demo.eps))
+(sd(demo.y - mean(demo.y)))
+
+# Y = 2X + 1
+demo.a <- 2; demo.b <- 1
+demo.y <- demo.a * demo.x + demo.b
+plot(demo.x, demo.y)
+(mean(demo.y))
+(mean(demo.a * demo.x + demo.b))
+
+
+```
+
+
+
+??? Naturally, the value of $\sigma$ will differ in our Equation 1 and Equation 2 above, were they to refer to the same random variable Y.
+
+It is also important to note that we are answering the question:
+
+**How does Y respond to predictor X?**
+
+with the answer: **"It responds in a linear fashion (with some additional randomness)."** That is the basis for our use of a linear model and will not always be the case.
+
+XXX ??? Firstly, we can observe that in our case "b" is equivalent to the mean or expected value of Y.
 
 But perhaps more importantly we see that the second equation XXX ???
 
@@ -120,9 +176,20 @@ plot(model1$Eps, type = "l", main = paste(title, "Residuals"))
 
 ### Exploration
 
+Let's explore our model a bit to confirm some of our expectations:
+
 ```{r m1-explore}
-sd(model1.y)
-sd(model1.eps)
+# Our Y values are indeed calculated according to our equation
+(a * model1.x[0:5] + b + model1.eps[0:5])
+(model1.y[0:5])
+
+# The mean of our Epsilon sample is ~ 0, hence the mean of aX + b is ~ equivalent to the 
+#   mean of Y
+(mean(model1.eps))
+(mean((a * model1.x) + b))
+(mean(model1.y))
+
+
 ```
 
 
