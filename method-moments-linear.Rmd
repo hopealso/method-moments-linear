@@ -95,7 +95,7 @@ One could say that the goal of statistics is to explain the relationship between
 
 In order to do so, we need to know **more** about Y than the above Equation 2 tells us, namely that "it is random and seems to center around this number and vary about this much in this way". The "more" that we would like to know (if possible) is how Y responds according to a predictor, or set of predictors. Thus the first equation provides both, the **predictor**, "X", and the **"how"**, our slope and intercept a and b.
 
-Yet in both cases $\varepsilon$ is our "smoke screen" of reality, also known as randomness. One way of looking at our first equation is that it takes a *portion* of the unknown in $\varepsilon$ and converts it into a known ($aX + b$).
+Yet in both cases $\varepsilon$ is our "smoke screen" of reality, also known as randomness. One way of looking at our first equation is that it takes a *portion* of the unpredictable in $\varepsilon$ and converts it into a predictable ($aX + b$). We will refer to the randomness or unpredictable element in our models as the "error" or the "residuals". Thus when we refer to $\sigma_{\varepsilon}$ we are referring to the "residual standard deviation".
 
 Naturally, the value of $\sigma$ will differ in our Equation 1 and Equation 2 above, were they to refer to the same random variable Y. The reason they vary is precisely because the predictor variable X "takes away" (i.e. *explains*) some of the variability that our Equation 2 $\varepsilon$ explains. Thus we should find that our $\sigma_{Y}$ is greater than our $\sigma_{\varepsilon}$.
 
@@ -111,7 +111,7 @@ Simulate and plot Model 1:
 
 Input variable $X \sim Norm(\mu= 3, \sigma=2.5)$; model residuals $Eps \sim Norm(\mu = 0, \sigma = 1.5)$
 
-```{r m1, fig.width=6.5, fig.height=4.5}
+```{r m1}
 # Simulate the Eps residual using rnorm()
 set.seed(seed2)
 model1.eps.sd <- 1.5
@@ -373,6 +373,8 @@ Once again we are reassured that the correlation is now even closer to our theor
 
 Estimate parameters $a, b, \sigma$ using the function lm(). Explore its output.
 
+Recall that the $\sigma$ we refer to here is the "residual standard deviation" or the square root of the estimated variance of our Epsilon "error" (randomness).
+
 ```{r q6}
 model1.est <- lm(Y~X, data = model1)
 (model1.summary <- summary(model1.est))
@@ -429,14 +431,24 @@ $\sigma_{XY} = aVar[X]$
 ```{r q6-mom}
 a.est <- cov(model1.x, model1.y) / var(model1.x)
 b.est <- mean(model1.y) - (a.est * mean(model1.x))
-sigma.est <- sqrt(var(model1.y) - (a.est^2 * var(model1.x)))
+sigma.eps.est <- sqrt(var(model1.y) - (a.est^2 * var(model1.x)))
 
-c(a.est, b.est, sigma.est)
+c(a.est, b.est, sigma.eps.est)
 ```
 
 ### ***Reconcile our Method of Moments sigma estimate with our sigma obtained through lm().***
 
-???XXX???
+```{r q6-reconcile}
+c(model1.summary$sigma^2, var(model1.summary$residuals), sigma.eps.est^2)
+sigma.eps.est^2 * (sample.n - 1) / (sample.n - 2)
+
+df.ratio <- (sample.n - 1) / (sample.n - 2)
+c(model1.summary$sigma^2, var(model1.summary$residuals) * df.ratio, sigma.eps.est^2 * df.ratio)
+```
+
+We can see that, since our Method of Moments estimate also uses `var()` and an N-1 denominator to calculate $\sigma_{\varepsilon}$ it is corrected with the same ration that we used above for `var(model1.summary$residuals)`.
+
+Using a degrees of freedom ratio, we can reconcile all 3 derivations of $\sigma_{\varepsilon}$.
 
 ## 7. Fit lm() to the the Rest of Linear Models
 
