@@ -165,7 +165,8 @@ Input variable $X \sim Norm(\mu= 3, \sigma=2.5)$; model residuals $Eps \sim Unif
 ```{r m2}
 # Simulate the model using X from Model 1 and runif() for Eps
 set.seed(seed2)
-model2.eps <- runif(sample.n, min = -4.33, max = 4.33)
+model2.min <- -4.33; model2.max <- 4.33
+model2.eps <- runif(sample.n, min = model2.min, max = model2.max)
 
 model2.y <- (a * model1.x + b) + model2.eps
 model2 <- data.frame(Y=model2.y, X=model1.x, Eps=model2.eps)
@@ -429,21 +430,23 @@ $\sigma_{XY} = aVar[X]$
 #### 2. Using R, we can now solve for our parameters:
 
 ```{r q6-mom}
-a.est <- cov(model1.x, model1.y) / var(model1.x)
-b.est <- mean(model1.y) - (a.est * mean(model1.x))
-sigma.eps.est <- sqrt(var(model1.y) - (a.est^2 * var(model1.x)))
+model1.a.est <- cov(model1.x, model1.y) / var(model1.x)
+model1.b.est <- mean(model1.y) - (model1.a.est * mean(model1.x))
+model1.sigma.eps.est <- sqrt(var(model1.y) - (model1.a.est^2 * var(model1.x)))
 
-c(a.est, b.est, sigma.eps.est)
+c(model1.a.est, model1.b.est, model1.sigma.eps.est)
 ```
 
 ### ***Reconcile our Method of Moments sigma estimate with our sigma obtained through lm().***
 
 ```{r q6-reconcile}
-c(model1.summary$sigma^2, var(model1.summary$residuals), sigma.eps.est^2)
-sigma.eps.est^2 * (sample.n - 1) / (sample.n - 2)
+c(model1.summary$sigma^2, var(model1.summary$residuals), model1.sigma.eps.est^2)
+model1.sigma.eps.est^2 * (sample.n - 1) / (sample.n - 2)
 
 df.ratio <- (sample.n - 1) / (sample.n - 2)
-c(model1.summary$sigma^2, var(model1.summary$residuals) * df.ratio, sigma.eps.est^2 * df.ratio)
+c(model1.summary$sigma^2, 
+  var(model1.summary$residuals) * df.ratio, 
+  model1.sigma.eps.est^2 * df.ratio)
 ```
 
 We can see that, since our Method of Moments estimate also uses `var()` and an N-1 denominator to calculate $\sigma_{\varepsilon}$ it is corrected with the same ration that we used above for `var(model1.summary$residuals)`.
@@ -463,13 +466,43 @@ model4.est <- lm(Y~X, data = model4)
 model4.summary <- summary(model4.est)
 ```
 
+As we assess the model behavior and estimated parameters we obtained through lm(), we can consider the question we asked earlier in the Explanation section of Model 1:
+
+Q. How does Y respond to predictor X?
+
 ### Model 1 - Normal Residuals
 
 ``` {r q7-m1}
 model1.summary$coefficients
 model1.summary$df
 c(model1.summary$sigma, model1.summary$r.squared)
+
+# Estimate r-squared from sample with Method of Moments
+model1.rho.sq.est <- model1.a.est^2 * var(model1.x) / var(model1.y)
 ```
+
+For this model the "true" answer to our question, at least the one which we coded into our pseudo-random Model 1 sample is the following:
+
+Y responds to predictor X in a linear fashion with some additional Gaussian randomness (residuals), according to the equation:
+
+Predictor X:
+
+$X \sim Norm(\mu=3, \sigma_{X}=2.5)$
+
+Response Y:
+
+$Y = aX + b + \varepsilon$
+
+$\varepsilon \sim Norm(0, \sigma_{\varepsilon})$
+
+Our "true" population parameters, which we used to build our sample, compared to the estimates produced by lm() and the Method of Moments are:
+
+Parameter  | True Value | `lm()` Estimate | MoM Estimate
+-----------|------------|-----------------|--------------
+a | `r a` | | `r model1.a.est`
+b | `r b` | `r model1.summary$coefficients[[1]]` | `r model1.b.est`
+$\sigma_{\varepsilon}$ | `r model1.eps.sd` | `r model1.summary$sigma` | `r model1.sigma.eps.est`
+$\rho^2$ | `r rho.sq.theoretical` | `r model1.summary$r.squared` | `r model1.rho.sq.est`
 
 ### Model 2 - Uniform Residuals
 
@@ -477,7 +510,40 @@ c(model1.summary$sigma, model1.summary$r.squared)
 model2.summary$coefficients
 model2.summary$df
 c(model2.summary$sigma, model2.summary$r.squared)
+
+# Calculate sigma epsilon through formula based on known uniform distrib parameters
+model2.eps.sd <- sqrt((model2.max - model2.min)^2 / 12)
+model2.rho.sq <- (a * model1.x.sd)^2 / ((a * model1.x.sd)^2 + model2.eps.sd^2)
+
+# Estimate Model 2 parameters from sample using Method of Moments
+model2.a.est <- cov(model1.x, model2.y) / var(model1.x)
+model2.b.est <- mean(model2.y) - (model2.a.est * mean(model1.x))
+model2.sigma.eps.est <- sqrt(var(model2.y) - (model2.a.est^2 * var(model1.x)))
+model2.rho.sq.est <- model2.a.est^2 * var(model1.x) / var(model2.y)
 ```
+
+For this model the "true" answer to our question, at least the one which we coded into our pseudo-random Model 2 sample is the following:
+
+Y responds to predictor X in a linear fashion with some additional randomness (residuals) which is uniform between a specific interval, according to the equation:
+
+Predictor X:
+
+$X \sim Norm(\mu=3, \sigma_{X}=2.5)$
+
+Response Y:
+
+$Y = aX + b + \varepsilon$
+
+$\varepsilon \sim Unif(`r model2.min`, `r model2.max`)$
+
+Our "true" population parameters, which we used to build our sample, compared to the estimates produced by lm() and the Method of Moments are:
+
+Parameter  | True Value | `lm()` Estimate | MoM Estimate
+-----------|------------|-----------------|--------------
+a | `r a` | | `r model2.a.est`
+b | `r b` | `r model2.summary$coefficients[[1]]` | `r model2.b.est`
+$\sigma_{\varepsilon}$ | `r model2.eps.sd` | `r model2.summary$sigma` | `r model2.sigma.eps.est`
+$\rho^2$ | `r model2.rho.sq` | `r model1.summary$r.squared` | `r model2.rho.sq.est`
 
 ### Model 3 - Cauchy Residuals
 
@@ -485,7 +551,36 @@ c(model2.summary$sigma, model2.summary$r.squared)
 model3.summary$coefficients
 model3.summary$df
 c(model3.summary$sigma, model3.summary$r.squared)
+
+# Estimate Model 3 parameters from sample using Method of Moments
+model3.a.est <- cov(model1.x, model3.y) / var(model1.x)
+model3.b.est <- mean(model3.y) - (model3.a.est * mean(model1.x))
+model3.sigma.eps.est <- sqrt(var(model3.y) - (model3.a.est^2 * var(model1.x)))
+model3.rho.sq.est <- model3.a.est^2 * var(model1.x) / var(model3.y)
 ```
+
+For this model the "true" answer to our question, at least the one which we coded into our pseudo-random Model 3 sample is the following:
+
+Y responds to predictor X in a linear fashion with some additional Cauchy randomness (residuals) which may in some ways appear Gaussian yet includes wildly divergent outliers, according to the equation:
+
+Predictor X:
+
+$X \sim Norm(\mu=3, \sigma_{X}=2.5)$
+
+Response Y:
+
+$Y = aX + b + \varepsilon$
+
+$\varepsilon \sim Cauchy(location=0, scale=3)$
+
+Our "true" population parameters, which we used to build our sample, compared to the estimates produced by lm() and the Method of Moments are:
+
+Parameter  | True Value | `lm()` Estimate | MoM Estimate
+-----------|------------|-----------------|--------------
+a | `r a` | | `r model3.a.est`
+b | `r b` | `r model3.summary$coefficients[[1]]` | `r model3.b.est`
+$\sigma_{\varepsilon}$ | n/a | `r model3.summary$sigma` | `r model3.sigma.eps.est`
+$\rho^2$ | n/a | `r model3.summary$r.squared` | `r model3.rho.sq.est`
 
 ### Model 4 - Heteroscedastic Residuals
 
@@ -493,5 +588,33 @@ c(model3.summary$sigma, model3.summary$r.squared)
 model4.summary$coefficients
 model4.summary$df
 c(model4.summary$sigma, model4.summary$r.squared)
+
+# Estimate Model 4 parameters from sample using Method of Moments
+model4.a.est <- cov(model1.x, model4.y) / var(model1.x)
+model4.b.est <- mean(model4.y) - (model4.a.est * mean(model1.x))
+model4.sigma.eps.est <- sqrt(var(model4.y) - (model4.a.est^2 * var(model1.x)))
+model4.rho.sq.est <- model4.a.est^2 * var(model1.x) / var(model4.y)
 ```
 
+For this model the "true" answer to our question, at least the one which we coded into our pseudo-random Model 4 sample is the following:
+
+Y responds to predictor X in a linear fashion with some additional heteroscedastic randomness (residuals) which may in some ways appear Gaussian yet due to an inconsistent standard deviation in the data exhibits XXX ??? XXX behavior, according to the equation:
+
+Predictor X:
+
+$X \sim Norm(\mu=3, \sigma_{X}=2.5)$
+
+Response Y:
+
+$Y = aX + b + \varepsilon$
+
+$\varepsilon \sim$ multiple sub-sequences on $Norm(0, \sigma_{\varepsilon_{1-4}})$
+
+Our "true" population parameters, which we used to build our sample, compared to the estimates produced by lm() and the Method of Moments are:
+
+Parameter  | True Value | `lm()` Estimate | MoM Estimate
+-----------|------------|-----------------|--------------
+a | `r a` | | `r model4.a.est`
+b | `r b` | `r model4.summary$coefficients[[1]]` | `r model4.b.est`
+$\sigma_{\varepsilon}$ | various; mean of `r mean(hetero.process)` | `r model4.summary$sigma` | `r model4.sigma.eps.est`
+$\rho^2$ | n/a | `r model4.summary$r.squared` | `r model4.rho.sq.est`
