@@ -19,7 +19,7 @@ _Notes_
 
 * _Packages required: None_
 
-* _Files required: None_
+* _Files required: For Test: 'Week3_Test_Sample.csv'; store in RStudio project directory._
 
 ## Set Up
 
@@ -63,7 +63,7 @@ Now we'll take the above simple introductory model and add a "Gaussian" (normal)
 
 ### Explanation
 
-In this model, the value of the random variable Y varies, i.e. it is not a constant. A portion of this variation is *explained* by the variation in X or is *predicted* by X. This portion is described by our earlier introductory model:
+In this model, the value of the random variable Y varies, i.e. it is not a constant. A portion of this variation is *explained* by the values of X or is *predicted* by X (and the coefficients of our linear equation). This portion is described by our earlier introductory model:
 
 $Y = aX + b$
 
@@ -97,7 +97,7 @@ In order to do so, we need to know **more** about Y than the above Equation 2 te
 
 Yet in both cases $\varepsilon$ is our "smoke screen" of reality, also known as randomness. One way of looking at our first equation is that it takes a *portion* of the unpredictable in $\varepsilon$ and converts it into a predictable ($aX + b$). We will refer to the randomness or unpredictable element in our models as the "error" or the "residuals". Thus when we refer to $\sigma_{\varepsilon}$ we are referring to the "residual standard deviation".
 
-Naturally, the value of $\sigma$ will differ in our Equation 1 and Equation 2 above, were they to refer to the same random variable Y. The reason they vary is precisely because the predictor variable X "takes away" (i.e. *explains*) some of the variability that our Equation 2 $\varepsilon$ explains. Thus we should find that our $\sigma_{Y}$ is greater than our $\sigma_{\varepsilon}$.
+Naturally, the value of $\sigma$ will differ in our Equation 1 and Equation 2 above, were they to refer to the same random variable Y. The reason they vary is precisely because the predictor variable X (or rather the predictor multiplied by its slope coefficient) "takes away" (i.e. *explains*) some of the variability that our Equation 2 $\varepsilon$ explains. Thus we should find that our $\sigma_{Y}$ is greater than our $\sigma_{\varepsilon}$.
 
 Finally, it is important to note that we are answering the question:
 
@@ -783,3 +783,28 @@ model.hetero <- ModelHetero(c(1.6, 1.6, 1.7, 1.7))
 cor(model.hetero$X, model.hetero$Y)
 PlotHetero(model.hetero$Eps)
 ```
+
+## Test
+
+```{r test}
+df <- read.table('Week3_Test_Sample.csv', header=TRUE)
+
+test.fit <- lm(Y~X, df)
+test.fit.summary <- summary(test.fit)
+test.fit.summary
+
+plot(df$X, df$Y)
+y.est <- df$X * coef(test.fit)[2] + coef(test.fit)[1]
+plot(df$X, y.est)
+
+test.eps <- df$Y - y.est
+par(mfrow=c(1,2))
+plot(test.eps)
+boxplot(test.eps)
+hist(test.eps)
+plot(density(test.eps))
+par(mfrow=c(1,1))
+
+plot(df$X, df$Y, xlim = c(0, 5), ylim = c(0,10))
+```
+
